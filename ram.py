@@ -1,51 +1,34 @@
+import re
 from flask import Flask
-import psutil
 import sqlite3    
 import os
 import threading
-from sqlite3 import Error
 from datetime import datetime
-# Getting all memory using os.popen()
-#x
 
-# Memory usage
-#print("RAM memory % used:", round((used_memory/total_memory) * 100, 2))
-
-    
+ #procees for claculate the ram status
 def ram():  
-# Getting % usage of virtual_memory ( 3rd field)
+# Getting memory config
     threading.Timer(60,ram).start()
-    total= psutil.virtual_memory()[0]
-    used=psutil.virtual_memory()[3]
-    free=psutil.virtual_memory()[4]
-    date_time=datetime.now()
+    total_memory, used_memory, free_memory = map(
+    int, os.popen('free -t -m').readlines()[-1].split()[1:])
+    date=datetime.now()
+    tu=(total_memory,used_memory,free_memory,date)
+    create_ram_config(tu)
     
-    tu_ram=(total,used,free,date_time)
-    create_ram_config(tu_ram)
 
-def db_create(db_name):
-    conn=None
-    try:
-        conn=sqlite3.connect(db_name)
-        print(conn)
-    except Error as e:
-            print(e)
-    finally:
-        if conn :
-            conn.close
-
-def db_creat():
-    conn = sqlite3.connect('ram.db') #Opens Connection to SQLite database file.
+#Create the table
+def tb_create():
+    conn = sqlite3.connect('ram.db') 
     conn.execute('''CREATE TABLE Client_db
                 ( total int,
                     used int,
                     free int,
                     data text
                 );''') 
-    #Creates the table
-    conn.commit() # Commits the entries to the database
+    
+    conn.commit() 
     conn.close()
-
+#fill the table
 def create_ram_config(tup):
     conn = sqlite3.connect('ram.db')
     cursor = conn.cursor()
@@ -54,14 +37,16 @@ def create_ram_config(tup):
     conn.commit()
     print('cofig Creation Successful')
     conn.close()
-    
+#read from table of db   
 def read_db(n):
     conn = sqlite3.connect('ram.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM Client_db ORDER BY data DESC LIMIT  % s ',n )
+    sql='SELECT * FROM Client_db ORDER BY data DESC LIMIT  '+str(n)
+    cursor.execute(sql)
     rows=cursor.fetchall()
     conn.close()
     li=[]
+    #convert list to dict in the list
     for i,row in enumerate( rows):
         dict={}
         dict.update({i+1:row})
@@ -70,8 +55,5 @@ def read_db(n):
 
 
 
-m=read_db(5)
-print(m)
-#r=conv_list_json(m)
 
 
