@@ -1,20 +1,23 @@
 from flask import Flask,request,redirect,session,render_template,jsonify
-from ram import read_db,conv_list_json
+from ram import read_db,ram
 import json
 app=Flask(__name__)
 
+ #route for input the parameter 
 @app.route('/')
-def show_ram():
+def show_ram_record():
     
-    return render_template('api.html')
+    return render_template('count.html')
+#show the api    
 @app.route('/api' , methods=['post'])
 def show_api():
     number=request.form.get('number',None)
-    rows=read_db(number)
-    row=json.dumps(rows)
+    ram()
+    record=read_db(number)
+    record_js=json.dumps(record)
     
     
-    return f"it is your wanted:   {row}"
+    return f"it is your wanted:   {record_js}"
 
 
 app.run()
